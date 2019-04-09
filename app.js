@@ -15,8 +15,9 @@ io.on("connection", function(socket) {
     for (let game of games) {
         let port = game.useNextThruster();
         if (port !== false) {
-            socket.on("game event", msg => game.setState(port, msg));
+            socket.on("ge", msg => game.setState(port, msg)); // game event
             socket.on("disconnect", msg => game.disconnectThruster(port));
+            socket.on("sr", fn => fn(game.rocketCoords())); // state request
             break;
         }
     }
@@ -25,3 +26,9 @@ io.on("connection", function(socket) {
 http.listen(3000, function() {
     console.log("listening on *:3000");
 })
+
+function update() {
+    for (let game of games) game.act();
+}
+
+setInterval(update, 20);

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Rocket Game</title>
     <style>
-        * { padding: 0; margin: 0; }
+        * { padding: 0; margin: 0; background: #555;}
         canvas { background: #333; display: block; margin: auto; }
     </style>
 </head>
@@ -22,9 +22,30 @@
     document.addEventListener("keydown", ev => keyEvent(true, ev), false);
     document.addEventListener("keyup", ev => keyEvent(false, ev), false);
 
+    draw();
+
+    function draw() {
+        socket.emit("sr", function (data) { // state request
+            let multiplier = Math.min(canvas.width / data["sw"], canvas.height / data["sh"]);
+            canvas.width = data["sw"] * multiplier;
+            canvas.height = data["sh"] * multiplier;
+            // TODO multiply all coords with multiplier
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.beginPath();
+            ctx.translate(data["x"] + data["width"] / 2, data["y"] + data["height"]);
+            ctx.rotate(data["rot"] * Math.PI / 180);
+            ctx.fillStyle = "gold";
+            ctx.fillRect( - data["width"] / 2, - data["height"] / 2, data["width"], data["height"]);
+            ctx.fill();
+            ctx.restore();
+        });
+        requestAnimationFrame(draw);
+    }
+
     function keyEvent(pressed, ev) {
         if (ev.key === " ")
-            socket.emit("game event", pressed);
+            socket.emit("ge", pressed); // game event
     }
 </script>
 </body>

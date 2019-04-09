@@ -40,6 +40,7 @@ module.exports.game = class game {
         let t = (Date.now() - this.lastTime) / 1000;
         this.lastTime = Date.now();
         let fm = 0; // force multiplier
+        let fx = 0, fy = 0; // force loc
         for (const [key, value] of Object.entries(this.thrusterStates)) {
             if (value) {
                 fm++;
@@ -56,7 +57,7 @@ module.exports.game = class game {
             this.rocket["rot"] += am * rotationMultiplier;
             this.vx += accX * t; this.vy += accY * t;
         }
-        if (started) vy += gravity * t;
+        if (this.started) this.vy += gravity * t;
     }
 
     setState(thruster, state) {
@@ -66,7 +67,8 @@ module.exports.game = class game {
     rocketCoords() {
         return {
             "x": this.rocket["x"], "y": this.rocket["y"], "rot": this.rocket["rot"],
-            "width": this.rocket["width"], "height": this.rocket["height"]
+            "width": this.rocket["width"], "height": this.rocket["height"],
+            "sw": this.stage["width"], "sh": this.stage["height"]
         };
     }
 
