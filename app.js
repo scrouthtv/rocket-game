@@ -18,8 +18,14 @@ io.on("connection", function(socket) {
         let port = game.useNextThruster();
         if (port !== false) {
             console.log("someone registered on #" + i + ":" + port);
-            socket.on("ge", msg => game.setState(port, msg)); // game event
-            socket.on("sr", fn => fn(game.rocketCoords())); // state request
+            let debug = false;
+            socket.on("init", (dbg, fn) => { // initialize
+                debug = dbg;
+                //console.log(dbg);
+                fn({"sw": game.stage["width"], "sh": game.stage["height"]})
+            });
+            socket.on("gmev", msg => game.setState(port, msg)); // game event
+            socket.on("sreq", fn => fn(game.rocketCoords(debug))); // state request
             socket.on("disconnect", msg => {
                 game.disconnectThruster(port)
                 console.log("#" + i + ":" + port + " disconnected");

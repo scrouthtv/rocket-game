@@ -49,7 +49,8 @@ module.exports.game = class game {
             }
             if (fm > 0) {
                 this.started = true;
-                let fcX = fx / fm;                let am = this.rocket["cx"] - fcX; // angular movement factor
+                let fcX = fx / fm;
+                let am = this.rocket["cx"] - fcX; // angular movement factor
                 let accX = - Math.sin(this.rocket["rot"] * Math.PI / 180) * thrusterForce * fm;
                 let accY = Math.cos(this.rocket["rot"] * Math.PI / 180) * thrusterForce * fm;
                 this.rocket["rot"] += am * rotationMultiplier;
@@ -107,13 +108,13 @@ module.exports.game = class game {
         if (thruster in this.thrusterStates) this.thrusterStates[thruster] = state;
     }
 
-    rocketCoords() {
-        return {
+    rocketCoords(debug) {
+        let res = {
             "x": this.rocket["x"], "y": this.rocket["y"], "rot": this.rocket["rot"],
-            "width": this.rocket["width"], "height": this.rocket["height"],
-            "sw": this.stage["width"], "sh": this.stage["height"],
-            "dbg": this.rocketOuterCoords()
+            "width": this.rocket["width"], "height": this.rocket["height"]
         };
+        if (debug) res["dbg"] = this.rocketOuterCoords();
+        return res;
     }
 
     useNextThruster() {
