@@ -1,3 +1,4 @@
+/* jshint esversion: 6 */
 const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
@@ -5,16 +6,16 @@ const io = require("socket.io")(http);
 const game = require("./game");
 
 var games = [
-    new game.game(4)//, new game.game(5)
-]
+    new game.game(4) //, new game.game(5)
+];
 
-app.get("/", function(req, res) {
+app.get("/", function (req, res) {
     res.sendFile(__dirname + "/index.html");
 });
 
 app.use(express.static("res"));
 
-io.on("connection", function(socket) {
+io.on("connection", function (socket) {
     var i = 0;
     for (let game of games) {
         i++;
@@ -25,7 +26,10 @@ io.on("connection", function(socket) {
             socket.on("init", (dbg, fn) => { // initialize
                 debug = dbg;
                 //console.log(dbg);
-                fn({"sw": game.stage["width"], "sh": game.stage["height"]})
+                fn({
+                    "sw": game.stage["width"],
+                    "sh": game.stage["height"]
+                });
             });
             socket.on("gmev", msg => game.setState(port, msg)); // game event
             socket.on("sreq", fn => fn(game.rocketCoords(debug))); // state request
@@ -38,7 +42,7 @@ io.on("connection", function(socket) {
     }
 })
 
-http.listen(3000, function() {
+http.listen(3000, function () {
     console.log("listening on *:3000");
 })
 
