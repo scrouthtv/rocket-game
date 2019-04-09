@@ -11,7 +11,11 @@
 <body>
 <canvas id="game" width="1280" height="720"></canvas>
 
+<script src="/socket.io/socket.io.js"></script>
+
 <script>
+    var socket = io();
+
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const width = 64; const height = 72;
@@ -57,7 +61,7 @@
             let am = centerX - fcX; // angular movement factor
             let accX = - Math.sin(rocketRot * Math.PI / 180) * thrusterForce * fm;
             let accY = Math.cos(rocketRot * Math.PI / 180) * thrusterForce * fm;
-            rocketRot += am / 10;
+            rocketRot += am / 15;
             vx += accX * t; vy += accY * t;
         }
         if (started) vy += gravity * t;

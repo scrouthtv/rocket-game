@@ -1,0 +1,14 @@
+{
+    "name": "rocket-game",
+    "author": "scrouhtv",
+    "version": "0.1",
+    "description": "a little something something",
+    "dependencies": {
+        "express": "^4.16.4",
+        "socket.io": "^2.2.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/scrouthtv/rocket-game.git"
+    }
+}
