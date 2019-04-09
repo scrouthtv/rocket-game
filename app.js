@@ -4,7 +4,7 @@ const io = require("socket.io")(http);
 const game = require("./game");
 
 var games = [
-    new game.game(4), new game.game(5)
+    new game.game(4)//, new game.game(5)
 ]
 
 app.get("/", function(req, res) {

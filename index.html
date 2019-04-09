@@ -32,7 +32,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
             ctx.beginPath();
-            console.log((data["x"] + data["width"] / 2) * multiplier);
+            console.log(data["x"]);
             ctx.translate((data["x"] + data["width"] / 2) * multiplier, 
                           (data["y"] + data["height"]) * multiplier);
             ctx.rotate(data["rot"] * Math.PI / 180);

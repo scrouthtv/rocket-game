@@ -56,8 +56,9 @@ module.exports.game = class game {
             this.vx += accX * t; this.vy += accY * t;
         }
         if (this.started) this.vy += gravity * t;
-        this.rocket["x"] += this.vx * t;
-        this.rocket["y"] += this.vy * t;
+        console.log(this.vy);
+        this.rocket["x"] += this.vx * t * 1000; // TODO const this number
+        this.rocket["y"] += this.vy * t * 1000;
     }
 
     setState(thruster, state) {
