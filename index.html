@@ -19,6 +19,11 @@
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const isDebug = false;
+    const rocketModel = new Image;
+    rocketModel.src = "RocketPrototype.png";
+    //rocketModel.onload = () => {
+    //    ctx.drawImage(rocketModel, 20, 20);
+    //};
 
     canvas.width = window.innerWidth * 0.9;
     canvas.height = window.innerHeight * 0.9;
@@ -29,8 +34,6 @@
     canvas.addEventListener("touchmove", ev => tapEvent(true, ev), false);
     canvas.addEventListener("touchend", ev => tapEvent(false, ev), false);
     
-    console.log("initialized");
-
     socket.emit("init", isDebug, function (data) {
         multiplier = Math.min(canvas.width / data["sw"], canvas.height / data["sh"]);
         canvas.width = data["sw"] * multiplier;
@@ -47,9 +50,10 @@
             ctx.translate((data["x"] + data["width"] / 2) * multiplier, 
                           (data["y"] + data["height"]) * multiplier);
             ctx.rotate(data["rot"] * Math.PI / 180);
-            ctx.fillStyle = "gold";
-            ctx.fillRect( - data["width"] / 2 * multiplier, - data["height"] / 2 * multiplier,
-                         data["width"] * multiplier, data["height"] * multiplier);
+            //ctx.fillStyle = "gold";
+            //ctx.fillRect( - data["width"] / 2 * multiplier, - data["height"] / 2 * multiplier,
+            //             data["width"] * multiplier, data["height"] * multiplier);
+            ctx.drawImage(rocketModel, - data["width"] / 2 * multiplier, - data["height"] / 2 * multiplier, data["width"] * multiplier, data["height"] * multiplier);
             ctx.fill();
             ctx.restore();
             if(isDebug) debug(data["dbg"], multiplier);
@@ -63,6 +67,7 @@
         for (const coord of dbg) {
             ctx.fillStyle = "#579";
             ctx.fillRect(coord["x"] * multiplier - 1, coord["y"] * multiplier - 1, 3, 3);
+            
         }
         ctx.fill();
     }

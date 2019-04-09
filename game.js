@@ -1,12 +1,12 @@
 const thrusterForce = .28;
 const gravity = .2;
-const rotationMultiplier = 1/15;
+const rotationMultiplier = 1/100;
 
 module.exports.game = class game {
     constructor(thrusterAmount) {
         this.stage = { "width": 1920, "height": 1080 }
         // rotation in degrees: 0...360; 180 means straight upwards
-        this.rocket = { "width": 64, "height": 72, "rot": 180 }
+        this.rocket = { "width": 128, "height": 128+48, "rot": 180 }
         this.rocket["x"] = (this.stage["width"] - this.rocket["width"]) / 2;
         this.rocket["y"] = this.stage["height"] - this.rocket["height"] - this.rocket["height"];
         this.rocket["cx"] = this.rocket["width"] / 2; // to remove later on
