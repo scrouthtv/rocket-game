@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Rocket Game</title>
+    <style>
+        * { padding: 0; margin: 0; }
+        canvas { background: #333; display: block; margin: auto; }
+    </style>
+</head>
+<body>
+<canvas id="game" width="1280" height="720"></canvas>
+
+<script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const width = 64; const height = 72;
+    let rocketX = (canvas.width - width) / 2; let rocketY = canvas.height - height - 20;
+    let centerX = width / 2; let centerY = height / 2;
+    let rocketRot = 180; const thrusterForce = .28; const gravity = .2;
+    // rocket rotation is in degrees  rad = deg * pi / 180
+    let engines = {"1": false, "2": false, "3": false, "4": false};
+    let engLocs = {
+        "1": {"x":  9, "y": 10}, "2": {"x": 24, "y": 10},
+        "3": {"x": 40, "y": 10}, "4": {"x": 55, "y": 10}
+    }
+    let collisions = [
+        {"x1": 0, "x2": canvas.width, "y1": 0, "y2": 0},
+        {"x1": 0, "x2": canvas.width, "y1": canvas.height, "y2": canvas.height},
+        {"x1": 0, "x2": 0, "y1": 0, "y2": canvas.height},
+        {"x1": canvas.width, "x2": canvas.width, "y1": 0, "y2": canvas.height}
+    ]
+    var started = false, ended = false;
+
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+
+    var lastTime = Date.now();
+    var vx = 0; var vy = 0;
+
+    draw();
+
+    // elapsed time t since last act
+    function act(t) {
+        let fm = 0; // force multiplier
+        let fx = 0; let fy = 0; // force loc
+        for (const [key, value] of Object.entries(engines)) {
+            if (value) {
+                fm++;
+                fx += engLocs[key]["x"];
+                fy += engLocs[key]["y"];
+            }
+        }
+        if (fm > 0) {
+            started = true;
+            let fcX = fx / fm; let fcY = fy / fm; // linear force center coords
+            let am = centerX - fcX; // angular movement factor
+            let accX = - Math.sin(rocketRot * Math.PI / 180) * thrusterForce * fm;
+            let accY = Math.cos(rocketRot * Math.PI / 180) * thrusterForce * fm;
+            rocketRot += am / 10;
+            vx += accX * t; vy += accY * t;
+        }
+        if (started) vy += gravity * t;
+    }
+
+    function draw() {
+        let t = Date.now() - lastTime;
+        lastTime = Date.now();
+        act(t / 1000); // time in seconds not ms
+        rocketX += vx * t;
+        rocketY += vy * t;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawRocket(ctx, rocketX, rocketY, rocketRot);
+        debug(ctx);
+        for (const c of collisions) {
+            let rc = rocketOuterCoords();
+            if (intersects(c, {"x1": rc[0]["x"], "y1": rc[0]["y"], "x2": rc[1]["x"], "y2": rc[1]["y"]}) || 
+                intersects(c, {"x1": rc[1]["x"], "y1": rc[1]["y"], "x2": rc[2]["x"], "y2": rc[2]["y"]}) ||
+                intersects(c, {"x1": rc[2]["x"], "y1": rc[2]["y"], "x2": rc[3]["x"], "y2": rc[3]["y"]}) ||
+                intersects(c, {"x1": rc[3]["x"], "y1": rc[3]["y"], "x2": rc[0]["x"], "y2": rc[0]["y"]})) {
+                ended = true;
+                var velocity = Math.sqrt((Math.abs(vx) * t)^2 + (Math.abs(vy) * t)^2);
+                console.log(velocity);
+            }
+        }
+        if (!ended) requestAnimationFrame(draw);
+    }
+
+    // returns true if (a["x1"] : a["y1"]) -> (a["x2"] : a["y2"]) intersects with (b["x1"] : b["y1"]) -> (b["x2"] : b["y2"])
+    // i think it even returns true for parallel lines although it says different here: https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
+    // but it works for identical lines too i guess?
+    function intersects(a, b) {
+        let sa = {"x": a["x1"], "y": a["y1"]}
+        let det, gamma, lambda;
+        det = (a["x2"] - a["x1"]) * (b["y2"] - b["y1"]) - (b["x2"] - b["x1"]) * (a["y2"] - a["y1"]);
+        if (det === 0) return false;
+        lambda = ((b["y2"] - b["y1"]) * (b["x2"] - a["x1"]) + (b["x1"] - b["x2"]) * (b["y2"] - a["y1"])) / det;
+        gamma  = ((a["y1"] - a["y2"]) * (b["x2"] - a["x1"]) + (a["x2"] - a["x1"]) * (b["y2"] - a["y1"])) / det;
+        return 0 < lambda && lambda < 1 && 0 < gamma && gamma < 1;
+    }
+
+    function rocketOuterCoords() {
+        let sin = Math.sin(rocketRot * Math.PI / 180);
+        let cos = Math.cos(rocketRot * Math.PI / 180);
+        let x = width / 2; let y = height / 2;
+        var coords = [
+            {"x":    x  * cos -    y  * sin + rocketX + width / 2, "y":    x  * sin +    y  * cos + rocketY + height / 2},
+            {"x": (- x) * cos -    y  * sin + rocketX + width / 2, "y": (- x) * sin +    y  * cos + rocketY + height / 2},
+            {"x": (- x) * cos - (- y) * sin + rocketX + width / 2, "y": (- x) * sin + (- y) * cos + rocketY + height / 2},
+            {"x":    x  * cos - (- y) * sin + rocketX + width / 2, "y":    x  * sin + (- y) * cos + rocketY + height / 2}
+        ]
+        return coords;
+    }
+
+    function debug(ctx) {
+        ctx.beginPath();
+        ctx.fillStyle = "#f00";
+        for (const coord of rocketOuterCoords()) {
+            ctx.fillStyle = randomColor();
+            ctx.fillRect(coord["x"] - 1, coord["y"] - 1, 3, 3);
+        }
+        ctx.fill();
+    }
+
+    function randomColor() {
+        let ltrs = "0123456789ABCDEF";
+        let clr = "#";
+        for (let i = 0; i < 6; i++)
+            clr += ltrs[Math.floor(Math.random() * 16)];
+        return clr;
+    }
+
+    function keyDownHandler(ev) {
+        if (ev.key in engines) {
+            engines[ev.key] = true;
+        }
+    }
+
+    function keyUpHandler(ev) {
+        if (ev.key in engines) {
+            engines[ev.key] = false;
+        }
+    }
+
+    // rot in degrees
+    function drawRocket(ctx, x, y, rot) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.translate(x + centerX, y + centerY);
+        ctx.rotate(rot * Math.PI / 180);
+        ctx.fillStyle = "gold";
+        ctx.fillRect( - centerX, - centerY, width, height);
+        ctx.fill();
+        ctx.restore();
+    }
+
+</script>
+</body>
+</html>
