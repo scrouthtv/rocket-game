@@ -1,6 +1,11 @@
-var app = require("express")();
-var http = require("http").createServer(app);
-var io = require("socket.io")(http);
+const app = require("express")();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+const game = require("./game");
+
+var games = [
+    new game.game()
+]
 
 app.get("/", function(req, res) {
     res.sendFile(__dirname + "/index.html");
