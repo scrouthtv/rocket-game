@@ -1,7 +1,7 @@
 {
     "name": "rocket-game",
     "author": "scrouhtv",
-    "version": "0.3",
+    "version": "0.4",
     "description": "a little something something",
     "dependencies": {
         "express": "^4.16.4",
