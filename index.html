@@ -29,14 +29,16 @@
             let multiplier = Math.min(canvas.width / data["sw"], canvas.height / data["sh"]);
             canvas.width = data["sw"] * multiplier;
             canvas.height = data["sh"] * multiplier;
-            // TODO multiply all coords with multiplier
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
             ctx.beginPath();
-            ctx.translate(data["x"] + data["width"] / 2, data["y"] + data["height"]);
+            console.log((data["x"] + data["width"] / 2) * multiplier);
+            ctx.translate((data["x"] + data["width"] / 2) * multiplier, 
+                          (data["y"] + data["height"]) * multiplier);
             ctx.rotate(data["rot"] * Math.PI / 180);
             ctx.fillStyle = "gold";
-            ctx.fillRect( - data["width"] / 2, - data["height"] / 2, data["width"], data["height"]);
+            ctx.fillRect( - data["width"] / 2 * multiplier, - data["height"] / 2 * multiplier,
+                         data["width"] * multiplier, data["height"] * multiplier);
             ctx.fill();
             ctx.restore();
         });

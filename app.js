@@ -12,12 +12,18 @@ app.get("/", function(req, res) {
 });
 
 io.on("connection", function(socket) {
+    var i = 0;
     for (let game of games) {
+        i++;
         let port = game.useNextThruster();
         if (port !== false) {
+            console.log("someone registered on #" + i + ":" + port);
             socket.on("ge", msg => game.setState(port, msg)); // game event
-            socket.on("disconnect", msg => game.disconnectThruster(port));
             socket.on("sr", fn => fn(game.rocketCoords())); // state request
+            socket.on("disconnect", msg => {
+                game.disconnectThruster(port)
+                console.log("#" + i + ":" + port + " disconnected");
+            });
             break;
         }
     }

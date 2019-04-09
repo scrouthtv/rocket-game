@@ -32,8 +32,6 @@ module.exports.game = class game {
         this.lastTime = Date.now();
         this.vx = 0; this.vy = 0;
         this.started = false; this.ended = false;
-
-        console.log("pups");
     }
 
     act() {
@@ -58,6 +56,8 @@ module.exports.game = class game {
             this.vx += accX * t; this.vy += accY * t;
         }
         if (this.started) this.vy += gravity * t;
+        this.rocket["x"] += this.vx * t;
+        this.rocket["y"] += this.vy * t;
     }
 
     setState(thruster, state) {
@@ -80,7 +80,7 @@ module.exports.game = class game {
     }
 
     disconnectThruster(id) {
-        if (id in this.thrusterStates) this.thrusters["connected"] = false;
+        if (id in this.thrusterStates) this.thrusters[id]["connected"] = false;
     }
 
 }
