@@ -8,7 +8,7 @@ module.exports.game = class game {
         // rotation in degrees: 0...360; 180 means straight upwards
         this.rocket = { "width": 64, "height": 72, "rot": 180 }
         this.rocket["x"] = (this.stage["width"] - this.rocket["width"]) / 2;
-        this.rocket["y"] = this.stage["height"] - this.rocket["height"] - 20;
+        this.rocket["y"] = this.stage["height"] - this.rocket["height"] - this.rocket["height"];
         this.rocket["cx"] = this.rocket["width"] / 2; // to remove later on
         this.rocket["cy"] = this.rocket["height"] / 2; // this too
         
@@ -35,30 +35,72 @@ module.exports.game = class game {
     }
 
     act() {
-        let t = (Date.now() - this.lastTime) / 1000;
-        this.lastTime = Date.now();
-        let fm = 0; // force multiplier
-        let fx = 0, fy = 0; // force loc
-        for (const [key, value] of Object.entries(this.thrusterStates)) {
-            if (value) {
-                fm++;
-                fx += this.thrusters[key]["x"];
-                fy += this.thrusters[key]["y"];
+        if (this.ended === false) { // ugly but idc
+            let t = (Date.now() - this.lastTime) / 1000;
+            this.lastTime = Date.now();
+            let fm = 0; // force multiplier
+            let fx = 0, fy = 0; // force loc
+            for (const [key, value] of Object.entries(this.thrusterStates)) {
+                if (value) {
+                    fm++;
+                    fx += this.thrusters[key]["x"];
+                    fy += this.thrusters[key]["y"];
+                }
+            }
+            if (fm > 0) {
+                this.started = true;
+                let fcX = fx / fm;                let am = this.rocket["cx"] - fcX; // angular movement factor
+                let accX = - Math.sin(this.rocket["rot"] * Math.PI / 180) * thrusterForce * fm;
+                let accY = Math.cos(this.rocket["rot"] * Math.PI / 180) * thrusterForce * fm;
+                this.rocket["rot"] += am * rotationMultiplier;
+                this.vx += accX * t; this.vy += accY * t;
+            }
+            if (this.started) this.vy += gravity * t;
+            this.rocket["x"] += this.vx * t * 1000; // TODO const this 1k
+            this.rocket["y"] += this.vy * t * 1000;
+            
+            for (const c of this.collisions) {
+                let rc = this.rocketOuterCoords();
+                if (this.intersects(c, {"x1": rc[0]["x"], "y1": rc[0]["y"], "x2": rc[1]["x"], "y2": rc[1]["y"]}) || 
+                    this.intersects(c, {"x1": rc[1]["x"], "y1": rc[1]["y"], "x2": rc[2]["x"], "y2": rc[2]["y"]}) ||
+                    this.intersects(c, {"x1": rc[2]["x"], "y1": rc[2]["y"], "x2": rc[3]["x"], "y2": rc[3]["y"]}) ||
+                    this.intersects(c, {"x1": rc[3]["x"], "y1": rc[3]["y"], "x2": rc[0]["x"], "y2": rc[0]["y"]})) {
+                    this.ended = true;
+                    var velocity = Math.sqrt((Math.abs(this.vx) * t)^2 + (Math.abs(this.vy) * t)^2);
+                    console.log("crash @ " + velocity);
+                }
             }
         }
-        if (fm > 0) {
-            this.started = true;
-            let fcX = fx / fm; let fcY = fy / fm; // linear force center coords
-            let am = this.rocket["cx"] - fcX; // angular movement factor
-            let accX = - Math.sin(this.rocket["rot"] * Math.PI / 180) * thrusterForce * fm;
-            let accY = Math.cos(this.rocket["rot"] * Math.PI / 180) * thrusterForce * fm;
-            this.rocket["rot"] += am * rotationMultiplier;
-            this.vx += accX * t; this.vy += accY * t;
-        }
-        if (this.started) this.vy += gravity * t;
-        console.log(this.vy);
-        this.rocket["x"] += this.vx * t * 1000; // TODO const this number
-        this.rocket["y"] += this.vy * t * 1000;
+    }
+
+    // returns true if (a["x1"] : a["y1"]) -> (a["x2"] : a["y2"]) intersects with (b["x1"] : b["y1"]) -> (b["x2"] : b["y2"])
+    // i think it even returns true for parallel lines although it says different here: https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
+    // but it works for identical lines too i guess?
+    intersects(a, b) {
+        let det, gamma, lambda;
+        det = (a["x2"] - a["x1"]) * (b["y2"] - b["y1"]) - (b["x2"] - b["x1"]) * (a["y2"] - a["y1"]);
+        if (det === 0) return false;
+        lambda = ((b["y2"] - b["y1"]) * (b["x2"] - a["x1"]) + (b["x1"] - b["x2"]) * (b["y2"] - a["y1"])) / det;
+        gamma  = ((a["y1"] - a["y2"]) * (b["x2"] - a["x1"]) + (a["x2"] - a["x1"]) * (b["y2"] - a["y1"])) / det;
+        return 0 < lambda && lambda < 1 && 0 < gamma && gamma < 1;
+    }
+
+    // calculates the rockets outer coords, only needed for internal code
+    rocketOuterCoords() {
+        let sin = Math.sin(this.rocket["rot"] * Math.PI / 180);
+        let cos = Math.cos(this.rocket["rot"] * Math.PI / 180);
+        let x = this.rocket["width"] / 2; let y = this.rocket["height"] / 2;
+        var coords = [
+            {"x":    x  * cos -    y  * sin + this.rocket["x"] + this.rocket["width"] / 2, 
+             "y":    x  * sin +    y  * cos + this.rocket["y"] + this.rocket["height"]},
+            {"x": (- x) * cos -    y  * sin + this.rocket["x"] + this.rocket["width"] / 2, 
+             "y": (- x) * sin +    y  * cos + this.rocket["y"] + this.rocket["height"]},
+            {"x": (- x) * cos - (- y) * sin + this.rocket["x"] + this.rocket["width"] / 2, 
+             "y": (- x) * sin + (- y) * cos + this.rocket["y"] + this.rocket["height"]},
+            {"x":    x  * cos - (- y) * sin + this.rocket["x"] + this.rocket["width"] / 2, 
+             "y":    x  * sin + (- y) * cos + this.rocket["y"] + this.rocket["height"]}
+        ]
+        return coords;
     }
 
     setState(thruster, state) {
@@ -69,7 +111,8 @@ module.exports.game = class game {
         return {
             "x": this.rocket["x"], "y": this.rocket["y"], "rot": this.rocket["rot"],
             "width": this.rocket["width"], "height": this.rocket["height"],
-            "sw": this.stage["width"], "sh": this.stage["height"]
+            "sw": this.stage["width"], "sh": this.stage["height"],
+            "dbg": this.rocketOuterCoords()
         };
     }
 

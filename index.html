@@ -32,7 +32,6 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
             ctx.beginPath();
-            console.log(data["x"]);
             ctx.translate((data["x"] + data["width"] / 2) * multiplier, 
                           (data["y"] + data["height"]) * multiplier);
             ctx.rotate(data["rot"] * Math.PI / 180);
@@ -41,8 +40,19 @@
                          data["width"] * multiplier, data["height"] * multiplier);
             ctx.fill();
             ctx.restore();
+            debug(data["dbg"], multiplier);
         });
         requestAnimationFrame(draw);
+    }
+
+    function debug(dbg, multiplier) {
+        ctx.beginPath();
+        ctx.fillStyle = "#f00";
+        for (const coord of dbg) {
+            ctx.fillStyle = "#579";
+            ctx.fillRect(coord["x"] * multiplier - 1, coord["y"] * multiplier - 1, 3, 3);
+        }
+        ctx.fill();
     }
 
     function keyEvent(pressed, ev) {
