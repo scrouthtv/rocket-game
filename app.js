@@ -22,17 +22,15 @@ io.on("connection", function (socket) {
         let port = game.useNextThruster();
         if (port !== false) {
             console.log("someone registered on #" + i + ":" + port);
-            let debug = false;
-            socket.on("init", (dbg, fn) => { // initialize
-                debug = dbg;
-                //console.log(dbg);
+            socket.on("init", fn => { // initialize
                 fn({
                     "sw": game.stage["width"],
-                    "sh": game.stage["height"]
+                    "sh": game.stage["height"],
+                    "port": port
                 });
             });
             socket.on("gmev", msg => game.setState(port, msg)); // game event
-            socket.on("sreq", fn => fn(game.rocketCoords(debug))); // state request
+            socket.on("sreq", fn => fn(game.rocketCoords())); // state request
             socket.on("disconnect", msg => {
                 game.disconnectThruster(port)
                 console.log("#" + i + ":" + port + " disconnected");

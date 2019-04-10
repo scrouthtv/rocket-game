@@ -20,6 +20,8 @@
 </head>
 
 <body>
+    <div id="debugText"></div>
+
     <canvas id="game"></canvas>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -29,7 +31,7 @@
 
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
-        const isDebug = false;
+        const isDebug = false, drawTextures = false;
         const rocketModel = new Image;
         rocketModel.src = "RocketPrototype.png";
 
@@ -42,10 +44,11 @@
         canvas.addEventListener("touchmove", ev => tapEvent(true, ev), false);
         canvas.addEventListener("touchend", ev => tapEvent(false, ev), false);
 
-        socket.emit("init", isDebug, function (data) {
+        socket.emit("init", function (data) {
             multiplier = Math.min(canvas.width / data["sw"], canvas.height / data["sh"]);
             canvas.width = data["sw"] * multiplier;
             canvas.height = data["sh"] * multiplier;
+            if (isDebug) document.getElementById("debugText").innerHTML += "\n Connected to " + data["port"];
         });
 
         draw();
@@ -58,27 +61,26 @@
                 ctx.translate((data["x"] + data["width"] / 2) * multiplier, (data["y"] + data["height"]) *
                     multiplier);
                 ctx.rotate(data["rot"] * Math.PI / 180);
-                ctx.drawImage(rocketModel, -data["width"] / 2 * multiplier, -data["height"] / 2 * multiplier,
+                if(!isDebug || drawTextures)
+                    ctx.drawImage(rocketModel, -data["width"] / 2 * multiplier, -data["height"] / 2 * multiplier,
                     data["width"] * multiplier, data["height"] * multiplier);
+                if (isDebug) debug(data, multiplier);
                 ctx.fill();
                 ctx.restore();
-                if (isDebug) debug(data["dbg"], multiplier);
             });
             requestAnimationFrame(draw);
         }
 
-        function debug(dbg, multiplier) {
+        function debug(data, multiplier) {
             ctx.beginPath();
-            ctx.fillStyle = "#f00";
-            for (const coord of dbg) {
-                ctx.fillStyle = "#579";
-                ctx.fillRect(coord["x"] * multiplier - 1, coord["y"] * multiplier - 1, 3, 3);
+            ctx.fillStyle = "gold";
+            ctx.fillRect( - data["width"] / 2 * multiplier, - data["height"] / 2 * multiplier,
+                         data["width"] * multiplier, data["height"] * multiplier);
+            ctx.fillStyle = "red";
+            for (const x of [-1, 1]) for (const y of [-1, 1]) {
+                ctx.fillRect(x * (data["width"] / 2 - 4) * multiplier , y * (data["height"] / 2 - 4) * multiplier, x * multiplier * 9, y * multiplier * 9);
             }
             ctx.fill();
-
-            //ctx.fillStyle = "gold";
-            //ctx.fillRect( - data["width"] / 2 * multiplier, - data["height"] / 2 * multiplier,
-            //             data["width"] * multiplier, data["height"] * multiplier);
         }
 
         function tapEvent(pressed, ev) {

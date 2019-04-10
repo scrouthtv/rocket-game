@@ -132,7 +132,7 @@ module.exports.game = class game {
         if (thruster in this.thrusterStates) this.thrusterStates[thruster] = state;
     }
 
-    rocketCoords(debug) {
+    rocketCoords() {
         let res = {
             "x": this.rocket["x"],
             "y": this.rocket["y"],
@@ -140,7 +140,6 @@ module.exports.game = class game {
             "width": this.rocket["width"],
             "height": this.rocket["height"]
         };
-        if (debug) res["dbg"] = this.rocketOuterCoords();
         return res;
     }
 
