@@ -53,13 +53,11 @@ module.exports.game = class game {
             let t = (Date.now() - this.lastTime) / 1000;
             this.lastTime = Date.now();
             let fm = 0; // force multiplier
-            let fx = 0,
-                fy = 0; // force loc
+            let fx = 0; // force loc, only x needed as of now
             for (const [key, value] of Object.entries(this.thrusterStates)) {
                 if (value) {
                     fm++;
                     fx += this.thrusters[key]["x"];
-                    fy += this.thrusters[key]["y"];
                 }
             }
             if (fm > 0) {
@@ -69,8 +67,7 @@ module.exports.game = class game {
                 let accX = -Math.sin(this.rocket["rot"] * Math.PI / 180) * thrusterForce * fm;
                 let accY = Math.cos(this.rocket["rot"] * Math.PI / 180) * thrusterForce * fm;
                 this.rocket["rot"] += am * rotationMultiplier;
-                this.vx += accX * t;
-                this.vy += accY * t;
+                this.vx += accX * t; this.vy += accY * t;
             }
             if (this.started) this.vy += gravity * t;
             this.rocket["x"] += this.vx * t * 1000; // TODO const this 1k
@@ -91,7 +88,8 @@ module.exports.game = class game {
     }
 
     // returns true if (a["x1"] : a["y1"]) -> (a["x2"] : a["y2"]) intersects with (b["x1"] : b["y1"]) -> (b["x2"] : b["y2"])
-    // i think it even returns true for parallel lines although it says different here: https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
+    // i think it even returns true for parallel lines although it says different here:
+    // https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
     // but it works for identical lines too i guess?
     intersects(a, b) {
         let det, gamma, lambda;
@@ -108,23 +106,12 @@ module.exports.game = class game {
         let cos = Math.cos(this.rocket["rot"] * Math.PI / 180);
         let x = this.rocket["width"] / 2;
         let y = this.rocket["height"] / 2;
-        var coords = [{
-                "x": x * cos - y * sin + this.rocket["x"] + this.rocket["width"] / 2,
-                "y": x * sin + y * cos + this.rocket["y"] + this.rocket["height"]
-            },
-            {
-                "x": (-x) * cos - y * sin + this.rocket["x"] + this.rocket["width"] / 2,
-                "y": (-x) * sin + y * cos + this.rocket["y"] + this.rocket["height"]
-            },
-            {
-                "x": (-x) * cos - (-y) * sin + this.rocket["x"] + this.rocket["width"] / 2,
-                "y": (-x) * sin + (-y) * cos + this.rocket["y"] + this.rocket["height"]
-            },
-            {
-                "x": x * cos - (-y) * sin + this.rocket["x"] + this.rocket["width"] / 2,
-                "y": x * sin + (-y) * cos + this.rocket["y"] + this.rocket["height"]
-            }
-        ]
+        var coords = [];
+        for (const xm of [-1, 1]) for (const ym of [-1, 1])
+            coords.push( {
+                "x": xm * x * cos - ym * y * sin + this.rocket["x"] + this.rocket["width"] / 2,
+                "y": xm * x * sin + ym * y * cos + this.rocket["y"] + this.rocket["height"]
+            });
         return coords;
     }
 
@@ -134,8 +121,7 @@ module.exports.game = class game {
 
     rocketCoords() {
         let res = {
-            "x": this.rocket["x"],
-            "y": this.rocket["y"],
+            "x": this.rocket["x"], "y": this.rocket["y"],
             "rot": this.rocket["rot"],
             "width": this.rocket["width"],
             "height": this.rocket["height"]
