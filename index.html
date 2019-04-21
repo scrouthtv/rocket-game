@@ -46,6 +46,8 @@
 
         socket.emit("init", function (data) {
             multiplier = Math.min(canvas.width / data["sw"], canvas.height / data["sh"]);
+            console.log(multiplier);
+            ctx.scale(multiplier, multiplier);
             canvas.width = data["sw"] * multiplier;
             canvas.height = data["sh"] * multiplier;
             if (isDebug) document.getElementById("debugText").innerHTML += "\n Connected to " + data["port"];

@@ -5,6 +5,8 @@ const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 const game = require("./game");
 
+console.log("on");
+
 var games = [
     new game.game(4) //, new game.game(5)
 ];
